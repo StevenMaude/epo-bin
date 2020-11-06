@@ -1,0 +1,35 @@
+name: "Publish daily EPO.BIN"
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * *'
+
+jobs:
+  collect:
+    name: Collect EPO.BIN and push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Download latest armstrong binary
+        run: curl -L "https://github.com/StevenMaude/armstrong/releases/latest/download/armstrong_linux_amd64" --output "armstrong_linux_amd64"
+
+      - name: Collect EPO.BIN
+        run: |
+          chmod u+x ./armstrong_linux_amd64
+          ./armstrong_linux_amd64
+
+      - name: Store latest EPO.BIN
+        env:
+          GIT_COMMITTER_NAME: GitHub
+          GIT_COMMITTER_EMAIL: noreply@github.com
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: |
+          git checkout -b update-epo-bin
+          git add EPO.BIN
+          git commit -m "Add EPO.BIN: `date +'%Y-%m-%d %H:%M:%S'`"
+          git push origin --force update-epo-bin:epo-bin
